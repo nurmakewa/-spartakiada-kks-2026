@@ -799,29 +799,63 @@
         const submitBtn = document.getElementById('submitBtn');
         const modal = document.getElementById('successModal');
 
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            if (!form.checkValidity()) {
-                form.reportValidity();
-                return;
-            }
-            if (!document.getElementById('consent').checked) {
-                alert('Пожалуйста, подтвердите согласие на обработку данных.');
-                return;
-            }
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = 'Отправка...';
-            setTimeout(() => {
-                modal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                form.reset();
-                uploadedFiles = [];
-                renderFileList();
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = 'Отправить заявку';
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }, 1500);
+      form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+
+    if (!document.getElementById('consent').checked) {
+        alert('Подтвердите согласие.');
+        return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'Отправка...';
+
+    const data = {
+        organization: document.getElementById('organization').value,
+        fio: document.getElementById('fio').value,
+        position: document.getElementById('position').value,
+        phone: document.getElementById('phone').value,
+        email: document.getElementById('email').value,
+        city: document.getElementById('city').value,
+        sport: document.getElementById('sport').value,
+        participants: document.getElementById('participants').value,
+        comment: document.getElementById('comment').value
+    };
+
+    try {
+        const response = await fetch("https://script.google.com/macros/s/AKfycbzYFc6CDJbjCsAO97-ZtEshEyzJKhxNNljSQqzoxd09Xv_r-pHrIvhvuoDl3ieYfdXljQ/exec", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(data)
         });
+
+        const result = await response.json();
+
+        if (result.status === "success") {
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            form.reset();
+            uploadedFiles = [];
+            renderFileList();
+        } else {
+            alert("Ошибка отправки.");
+        }
+
+    } catch (err) {
+        console.error(err);
+        alert("Не удалось отправить заявку.");
+    }
+
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = 'Отправить заявку';
+});
 
         function closeModal() {
             modal.classList.remove('active');
